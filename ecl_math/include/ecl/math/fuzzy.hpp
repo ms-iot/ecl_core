@@ -89,7 +89,7 @@ struct scalar_fuzzy_default_impl<Scalar, true> {
 			// only get here if its not complex, so OtherScalar has to be a floating type
 			typename ecl::numeric_limits<OtherScalar>::Precision precision;
 			if ( prec == 0.0 ) {
-				precision = ecl::numeric_limits<OtherScalar>::dummy_precision;
+				precision = ecl::numeric_limits<OtherScalar>::dummy_precision();
 			} else {
 				precision = static_cast<OtherScalar>(prec);
 			}
@@ -151,8 +151,8 @@ struct scalar_fuzzy_impl : implementations::scalar_fuzzy_default_impl<Scalar, nu
  * @return bool : true or false of the operation.
  */
 template<typename Scalar, typename OtherScalar>
-inline bool isApprox(const Scalar& x, const OtherScalar& y, typename numeric_limits<Scalar>::Precision precision = numeric_limits<Scalar>::dummy_precision) {
-	return implementations::scalar_fuzzy_impl<Scalar>::isApprox(x, y, precision);
+inline bool isApprox(const Scalar& x, const OtherScalar& y, typename decltype(numeric_limits<Scalar>::dummy_precision) precision = numeric_limits<Scalar>::dummy_precision) {
+	return implementations::scalar_fuzzy_impl<Scalar>::isApprox(x, y, precision());
 }
 
 /**
@@ -169,8 +169,8 @@ inline bool isApprox(const Scalar& x, const OtherScalar& y, typename numeric_lim
  * @return bool : true or false of the operation.
  */
 template<typename Scalar, typename OtherScalar>
-inline bool isApproxOrLessThan(const Scalar& x, const OtherScalar& y, typename numeric_limits<Scalar>::Precision precision = numeric_limits<Scalar>::dummy_precision) {
-	return implementations::scalar_fuzzy_impl<Scalar>::isApproxOrLessThan(x, y, precision);
+inline bool isApproxOrLessThan(const Scalar& x, const OtherScalar& y, typename decltype(numeric_limits<Scalar>::dummy_precision) precision = numeric_limits<Scalar>::dummy_precision) {
+	return implementations::scalar_fuzzy_impl<Scalar>::isApproxOrLessThan(x, y, precision());
 }
 
 

@@ -54,7 +54,10 @@ Sophus::SE3f toPose3D(const Eigen::Vector3f& pose)
     Eigen::Vector3f origin(from_x, from_y, 0.0);
     double angle = std::atan2(to_y-from_y, to_x-from_x);
     Eigen::Quaternion<float> q; q = Eigen::AngleAxis<float>(angle, Eigen::Vector3f::UnitZ());
-    return std::make_shared<Sophus::SE3f>(q, origin);
+
+    // std::make_shared causes error C2338: You've instantiated std::aligned_storage<Len, Align> with an extended alignment
+    // return std::make_shared<Sophus::SE3f>(q, origin);
+    return std::shared_ptr<Sophus::SE3f>(new Sophus::SE3f(q, origin));
   //  std::cout << "  Origin: " << origin.transpose() << std::endl;
   //  std::cout << "  Angle : " << angle << std::endl;
   }
