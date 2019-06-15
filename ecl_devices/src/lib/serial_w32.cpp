@@ -17,6 +17,7 @@
 ** Includes
 *****************************************************************************/
 
+#include <windows.h>
 #include <ecl/exceptions/standard_exception.hpp>
 #include "../../include/ecl/devices/serial_w32.hpp"
 
@@ -30,11 +31,23 @@ namespace ecl {
 ** Implementation [Serial][C&D]
 *****************************************************************************/
 
-Serial::Serial(const std::string& port_name, const BaudRate &baud_rate, const DataBits &data_bits,
-		const StopBits &stop_bits, const Parity &parity ) throw(StandardException) :
-				port(port_name), is_run(false), file_descriptor(INVALID_HANDLE_VALUE)
+Serial::Serial()
+    : is_open(false), is_run(false), file_descriptor(INVALID_HANDLE_VALUE), error_handler(NoError)
+{
+};
+
+Serial::Serial(
+    const std::string& port_name,
+    const BaudRate& baud_rate,
+    const DataBits& data_bits,
+    const StopBits& stop_bits,
+    const Parity& parity
+) throw(StandardException)
+    : port(port_name), is_run(false), file_descriptor(INVALID_HANDLE_VALUE)
 {
 	try {
+        m_osRead = new OVERLAPPED();
+        m_osWrite = new OVERLAPPED();
 		open(port_name, baud_rate, data_bits, stop_bits, parity);
 	} catch ( StandardException &e ) {
 		throw StandardException(LOC,e);
@@ -43,6 +56,8 @@ Serial::Serial(const std::string& port_name, const BaudRate &baud_rate, const Da
 
 Serial::~Serial() {
 	close();
+    delete m_osRead;
+    delete m_osWrite;
 }
 
 /*****************************************************************************
@@ -64,14 +79,14 @@ void Serial::open(const std::string& port_name, const BaudRate &baud_rate, const
     /******************************************
      * Reset Timeouts
      ******************************************/
-    m_osRead.Offset = 0;
-    m_osRead.OffsetHigh = 0;
-    if (! (m_osRead.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL))) {
+    m_osRead->Offset = 0;
+    m_osRead->OffsetHigh = 0;
+    if (! (m_osRead->hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr))) {
     	throw StandardException(LOC, OpenError, "Serial port failed to open - could not configure offsets.");
     }
-    m_osWrite.Offset = 0;
-    m_osWrite.OffsetHigh = 0;
-    if (! (m_osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL))) {
+    m_osWrite->Offset = 0;
+    m_osWrite->OffsetHigh = 0;
+    if (! (m_osWrite->hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr))) {
     	throw StandardException(LOC, OpenError, "Serial port failed to open - could not configure offsets.");
     }
 
@@ -85,13 +100,15 @@ void Serial::open(const std::string& port_name, const BaudRate &baud_rate, const
      * When in non-overlapped mode you can't sit in a thread trying to read the
      * port and simultaneously try to write from another.
      */
-    file_descriptor = CreateFileA( port.c_str(),
-                            GENERIC_READ | GENERIC_WRITE,
-                            0,
-                            NULL,
-                            OPEN_EXISTING, // Serial ports already exist
-                            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-                            NULL);
+    file_descriptor = ::CreateFileA(
+        port.c_str(),
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        nullptr,
+        OPEN_EXISTING, // Serial ports already exist
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+        nullptr
+    );
 
     /******************************************
      * Open - error handling
@@ -225,9 +242,9 @@ void Serial::close() {
 
 		if (file_descriptor != INVALID_HANDLE_VALUE) {
 			// These return values, but assume it works ok, not really critical.
-			SetCommMask(file_descriptor, 0);
-			PurgeComm(file_descriptor, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR );
-			CloseHandle(file_descriptor);
+			::SetCommMask(file_descriptor, 0);
+			::PurgeComm(file_descriptor, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR );
+			::CloseHandle(file_descriptor);
 			file_descriptor = INVALID_HANDLE_VALUE;
 		}
 
@@ -267,11 +284,11 @@ long Serial::write(const char *s, unsigned long n) {
 	COMSTAT comstat;
 	int    result;
 
-	result = WriteFile( file_descriptor, s, n, &written, &m_osWrite);
+	result = WriteFile( file_descriptor, s, n, &written, m_osWrite);
 
 	if (!result) {
 		if (GetLastError() == ERROR_IO_PENDING) {
-			while (!GetOverlappedResult(file_descriptor, &m_osWrite, &written, TRUE)) {
+			while (!GetOverlappedResult(file_descriptor, m_osWrite, &written, TRUE)) {
 				error = GetLastError();
 				if (error != ERROR_IO_INCOMPLETE) {
 					ClearCommError( file_descriptor, &error_flags, &comstat);
@@ -337,7 +354,7 @@ long Serial::read(char &c) {
 long Serial::read(char *s, const unsigned long &n)
 {
     COMSTAT comstat;
-    DWORD   read=0, error, error_flags;
+    DWORD read=0, error, error_flags;
     DWORD dwRes;
 
     /*********************
@@ -351,7 +368,7 @@ long Serial::read(char *s, const unsigned long &n)
     	return 0;
     }
 
-    if (!ReadFile( file_descriptor, s, n, &read, &m_osRead) ) {
+    if (!ReadFile( file_descriptor, s, n, &read, m_osRead) ) {
         error = GetLastError();
 
         if( error != ERROR_IO_PENDING ) {
@@ -360,11 +377,11 @@ long Serial::read(char *s, const unsigned long &n)
 
             return 0;
         } else {
-            dwRes = WaitForSingleObject( m_osRead.hEvent, INFINITE );
+            dwRes = WaitForSingleObject( m_osRead->hEvent, INFINITE );
 
             switch( dwRes ) {
             case WAIT_OBJECT_0:
-                if( !GetOverlappedResult( file_descriptor, &m_osRead, &read, FALSE) ) {
+                if( !GetOverlappedResult( file_descriptor, m_osRead, &read, FALSE) ) {
                     ClearCommError(file_descriptor, &error_flags, &comstat);
                     return 0;
                 } else {
@@ -383,6 +400,20 @@ long Serial::read(char *s, const unsigned long &n)
     }
     return read;
 }
+
+void Serial::clear() {
+    ::PurgeComm(file_descriptor, PURGE_RXCLEAR);
+    ::PurgeComm(file_descriptor, PURGE_TXCLEAR);
+}
+
+void Serial::clearInputBuffer() {
+    ::PurgeComm(file_descriptor, PURGE_RXCLEAR);
+}
+
+void Serial::clearOutputBuffer() {
+    ::PurgeComm(file_descriptor, PURGE_TXCLEAR);
+}
+
 } // namespace ecl
 
 #endif /* ECL_IS_WIN32 */

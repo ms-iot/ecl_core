@@ -17,14 +17,15 @@
 *****************************************************************************/
 
 #include <ecl/config.hpp>
+
 #if defined(ECL_IS_WIN32)
+
 #define ECL_HAS_TIMESTAMP
 
 /*****************************************************************************
 ** Includes
 *****************************************************************************/
 
-#include <ecl/config/windows.hpp>
 #include <ecl/config/macros.hpp>
 #include <ecl/config/portable_types.hpp>
 #include <ecl/exceptions/standard_exception.hpp>

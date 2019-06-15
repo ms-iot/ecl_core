@@ -19,16 +19,16 @@
 *****************************************************************************/
 
 #include <ecl/config/ecl.hpp>
+
 #if defined(ECL_IS_WIN32)
 
 /*****************************************************************************
 ** Includes
 *****************************************************************************/
 
-#include <windows.h>
+#include <mutex>
 #include <ecl/time/duration.hpp>
 #include "macros.hpp"
-
 
 /*****************************************************************************
 ** Namespaces
@@ -40,7 +40,8 @@ namespace ecl {
 ** Typedefs
 *****************************************************************************/
 
-typedef CRITICAL_SECTION RawMutex; /**< @brief Abstraction representing the fundamental mutex type. **/
+// typedef CRITICAL_SECTION RawMutex; /**< @brief Abstraction representing the fundamental mutex type. **/
+typedef std::mutex MutexImpl;
 
 /*****************************************************************************
 ** Class Mutex
@@ -65,12 +66,13 @@ public:
 	 * @param locked : optionally lock the mutex upon creation (default is unlocked).
 	 */
 	Mutex(const bool locked = false);
+
 	/**
 	 * @brief Destroys the mutex.
 	 *
 	 * De-allocates the resources allocated to the mutex.
 	 */
-	virtual ~Mutex();
+	virtual ~Mutex() = default;
 
 	/**
 	 * @brief Unlocks the mutex.
@@ -122,10 +124,13 @@ public:
 	 * Returns a reference to the underlying mutex type.
 	 * @return RawMutex& : a reference to the underlying mutex type.
 	 */
-	RawMutex& rawType() { return mutex; }
+	MutexImpl& rawType() { return mutex; }
+
+	Mutex(const Mutex&) = delete;
+	Mutex& operator=(const Mutex&) = delete;
 
 private:
-	RawMutex mutex;
+	MutexImpl mutex;
 	unsigned int number_locks;
 
 };

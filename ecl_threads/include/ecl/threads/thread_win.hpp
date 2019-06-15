@@ -23,7 +23,6 @@
 ** Includes
 *****************************************************************************/
 
-#include <windows.h>
 #include "thread_exceptions_pos.hpp"
 #include <ecl/config/macros.hpp>
 #include <ecl/concepts/nullary_function.hpp>
@@ -135,7 +134,7 @@ public:
 	 * @param ptr_this : a pointer to an instance of this class.
 	 * @return unsigned int : a Win32 thread requirement. the return value.
 	 */
-	static unsigned int EntryPoint(void *ptr_this) {
+	static unsigned int EntryPoint(void* ptr_this) {
 	    ThreadTask< F, true > *ptr = static_cast< ThreadTask< F, true > * >(ptr_this);
 	    (ptr->function)();
 	    return 0;
@@ -232,12 +231,7 @@ public:
 	 * execution (to wait on some initialisation parameters for example).
 	 * Use one of the start() functions to kick the thread off.
 	 */
-	Thread() :
-		thread_handle(NULL),
-		thread_task(NULL),
-		has_started(false),
-		join_requested(false)
-	{}
+	Thread() = default;
 	/**
 	 * @brief Convenience constructor that starts a new thread with a void global/static function.
 	 *
@@ -257,7 +251,7 @@ public:
 	 * @param stack_size : no. of bytes to allocate on the stack (default is to use the system value, usually 8k).
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 */
-	Thread(VoidFunction function, const Priority &priority = DefaultPriority, const long &stack_size = -1 );
+	Thread(VoidFunction function, const Priority& priority = DefaultPriority, const long& stack_size = -1);
 	/**
 	 * @brief Starts the thread if not already started.
 	 *
@@ -267,7 +261,7 @@ public:
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 * @return Error : error result, fallback for when exceptions aren't available.
 	 */
-	Error start(VoidFunction function, const Priority &priority = DefaultPriority, const long &stack_size = -1 );
+	Error start(VoidFunction function, const Priority& priority = DefaultPriority, const long& stack_size = -1);
 	/**
 	 * @brief Convenience method that starts a new thread utilising a void member function.
 	 *
@@ -292,7 +286,7 @@ public:
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 */
 	template <typename C>
-	Thread(void (C::*function)(), C &c, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
+	Thread(void (C::*function)(), C& c, const Priority& priority = DefaultPriority,  const long& stack_size = -1);
 	/**
 	 * @brief Starts the thread if not already started.
 	 *
@@ -304,7 +298,7 @@ public:
 	 * @return Error : error result, fallback for when exceptions aren't available.
 	 */
 	template <typename C>
-	Error start(void (C::*function)(), C &c, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
+	Error start(void (C::*function)(), C& c, const Priority& priority = DefaultPriority,  const long& stack_size = -1);
 
 	/**
 	 * @brief Starts a new thread utilising a nullary function object.
@@ -345,7 +339,7 @@ public:
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 */
 	template <typename F>
-	Thread(const F &function, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
+	Thread(const F& function, const Priority& priority = DefaultPriority,  const long& stack_size = -1);
 	/**
 	 * @brief Starts a new thread utilising a nullary function object.
 	 *
@@ -356,7 +350,7 @@ public:
 	 * @return Error : error result, fallback for when exceptions aren't available.
 	 */
 	template <typename F>
-	Error start(const F &function, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
+	Error start(const F& function, const Priority& priority = DefaultPriority,  const long& stack_size = -1);
 
 	/**
 	 * @brief Cleans up the resources allocated to the thread.
@@ -373,9 +367,11 @@ public:
 	 *
 	 * @return bool : true if the thread task is still running, false otherwise.
 	 */
-	bool isRunning() { if ( thread_task == NULL ) { return false; } else { return true; } }
+    bool isRunning() {
+        return thread_task;
+    }
 
-	/**
+    /**
 	 * @brief Queue a cancel request for this thread to abort.
 	 *
 	 * This commands sends a request to the thread for cancellation. The calling thread
@@ -399,14 +395,18 @@ public:
 	 */
 	void join();
 
+	Thread(const Thread&) = delete;
+	Thread& operator=(const Thread&) = delete;
+
 
 private:
-	HANDLE thread_handle;
-    threads::ThreadTaskBase *thread_task;
-    bool has_started;
-    bool join_requested;
+    void* thread_handle = nullptr; // use void* for Windows HANDLE type
+    threads::ThreadTaskBase *thread_task = nullptr;
+    bool has_started = false;
+    bool join_requested = false;
 
-	void initialise(const long &stack_size);
+    typedef unsigned int(*entryPointFunc) (void*);
+    Error initialise(const entryPointFunc& entryPoint, const Priority& priority, const long& stack_size);
 
 	enum ThreadProperties {
 		DefaultStackSize = -1
@@ -418,22 +418,13 @@ private:
 *****************************************************************************/
 
 template <typename C>
-Thread::Thread(void (C::*function)(), C &c, const Priority &priority, const long &stack_size) :
-	thread_handle(NULL),
-	thread_task(NULL),
-	has_started(false),
-	join_requested(false)
+Thread::Thread(void (C::*function)(), C& c, const Priority& priority, const long& stack_size)
 {
 	start<C>(function, c, priority, stack_size);
-
 }
 
 template <typename F>
-Thread::Thread(const F &function, const Priority &priority, const long &stack_size) :
-	thread_handle(NULL),
-	thread_task(NULL),
-	has_started(false),
-	join_requested(false)
+Thread::Thread(const F& function, const Priority& priority, const long& stack_size)
 {
 	start<F>(function, priority, stack_size);
 }
@@ -451,56 +442,12 @@ Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const
 	}
 
 	thread_task = new threads::ThreadTask< BoundNullaryMemberFunction<C,void> >(generateFunctionObject( function, c ), priority);
-
-    DWORD threadid;
-
-    thread_handle = CreateThread(NULL,
-    	0,
-    	(LPTHREAD_START_ROUTINE)threads::ThreadTask< BoundNullaryMemberFunction<C,void> >::EntryPoint,
-    	thread_task,
-    	0,
-    	&threadid);
-
-    if (!thread_handle) {
-    	ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
-    	return Error(UnknownError);
-    }
-
-    BOOL bResult = FALSE;
-
-    if (priority >= RealTimePriority1) {
-    	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_TIME_CRITICAL);
-    }
-
-    switch (priority) {
-        case CriticalPriority:
-        	bResult = SetThreadPriority(thread_handle, HIGH_PRIORITY_CLASS);
-            break;
-        case HighPriority:
-        	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_ABOVE_NORMAL);
-            break;
-        case LowPriority:
-        	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_BELOW_NORMAL);
-            break;
-        case BackgroundPriority:
-        	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_IDLE);
-            break;
-        default:
-            break;
-    }
-
-    if (!bResult) {
-        ecl_debug_throw(threads::throwPriorityException(LOC));
-    }
-
-    return Error(NoError);
+    return initialise(&threads::ThreadTask< BoundNullaryMemberFunction<C,void> >::EntryPoint, priority, stack_size);
 }
 
 template <typename F>
 Error Thread::start(const F &function, const Priority &priority, const long &stack_size)
 {
-	// stack_size is ignored
-
 	if ( has_started ) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));
 		return Error(BusyError); // if in release mode, gracefully fall back to return values.
@@ -509,49 +456,7 @@ Error Thread::start(const F &function, const Priority &priority, const long &sta
 	}
 
 	thread_task = new threads::ThreadTask<F, is_reference_wrapper<F>::value >(function, priority);
-
-    DWORD threadid;
-
-    thread_handle = CreateThread(NULL,
-    	0,
-    	(LPTHREAD_START_ROUTINE)threads::ThreadTask<F, is_reference_wrapper<F>::value >::EntryPoint,
-    	thread_task,
-    	0,
-    	&threadid);
-
-    if (!thread_handle) {
-    	ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
-    	return Error(UnknownError);
-    }
-
-    BOOL bResult = FALSE;
-
-    if (priority >= RealTimePriority1) {
-    	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_TIME_CRITICAL);
-    }
-
-    switch (priority) {
-        case CriticalPriority:
-        	bResult = SetThreadPriority(thread_handle, HIGH_PRIORITY_CLASS);
-            break;
-        case HighPriority:
-        	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_ABOVE_NORMAL);
-            break;
-        case LowPriority:
-        	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_BELOW_NORMAL);
-            break;
-        case BackgroundPriority:
-        	bResult = SetThreadPriority(thread_handle, THREAD_PRIORITY_IDLE);
-            break;
-        default:
-            break;
-    }
-
-    if (!bResult) {
-        ecl_debug_throw(threads::throwPriorityException(LOC));
-    }
-
-    return Error(NoError);
+    return initialise(&threads::ThreadTask<F, is_reference_wrapper<F>::value >::EntryPoint, priority, stack_size);
 }
 
 }; // namespace ecl
