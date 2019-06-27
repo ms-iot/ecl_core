@@ -50,12 +50,12 @@ bool Mutex::trylock(Duration&) {
 }
 
 bool Mutex::trylock() {
-	if (number_locks)
+    if (number_locks)
     {
         return false;
     }
-	lock();
-	return true;
+    lock();
+    return true;
 }
 
 void Mutex::unlock()

@@ -8,8 +8,6 @@ file(GLOB SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 # INSTALL
 ###############################################################################
 
-# add_compile_options(/showIncludes)
-
 add_library(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 install(TARGETS ${PROJECT_NAME}

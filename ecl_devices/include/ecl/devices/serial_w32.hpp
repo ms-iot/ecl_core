@@ -314,12 +314,12 @@ public:
     const Error& error() const { return error_handler; }
 
 private:
-	/*********************
-	** Variables
-	**********************/
-	void* file_descriptor;
-	OVERLAPPED* m_osRead = nullptr; // offsets
-	OVERLAPPED* m_osWrite = nullptr; // offsets
+    /*********************
+    ** Variables
+    **********************/
+    void* file_descriptor; // use void* for Windows HANDLE type
+    OVERLAPPED* m_osRead = nullptr; // offsets
+    OVERLAPPED* m_osWrite = nullptr; // offsets
     std::string port;
     bool is_open;
     ecl::Error error_handler;

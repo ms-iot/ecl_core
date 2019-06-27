@@ -17,6 +17,7 @@
 *****************************************************************************/
 
 #include <windows.h>
+
 #include <iostream>
 #include "../../include/ecl/threads/thread_win.hpp"
 
@@ -30,12 +31,12 @@ namespace ecl {
 * Thread Class Methods
 *****************************************************************************/
 
-Thread::Thread(VoidFunction function, const Priority& priority, const long& stack_size)
+Thread::Thread(VoidFunction function, const Priority &priority, const long &stack_size)
 {
 	start(function, priority, stack_size);
 }
 
-Error Thread::start(VoidFunction function, const Priority& priority, const long& stack_size)
+Error Thread::start(VoidFunction function, const Priority &priority, const long &stack_size)
 {
 	// stack_size is ignored
 

@@ -19,7 +19,6 @@
 *****************************************************************************/
 
 #include <ecl/config/ecl.hpp>
-
 #if defined(ECL_IS_WIN32)
 
 /*****************************************************************************
@@ -40,7 +39,7 @@ namespace ecl {
 ** Typedefs
 *****************************************************************************/
 
-// typedef CRITICAL_SECTION RawMutex; /**< @brief Abstraction representing the fundamental mutex type. **/
+/**< @brief Abstraction representing the fundamental mutex type. **/
 typedef std::mutex MutexImpl;
 
 /*****************************************************************************

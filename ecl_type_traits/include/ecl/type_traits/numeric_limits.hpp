@@ -62,6 +62,14 @@ private:
 /*****************************************************************************
 ** Specialisations
 *****************************************************************************/
+
+/* Dummy precision is a useful concept borrowed from eigen. It is used to help define
+ * fuzzy operators which is especially handy for comparing floats which are notorious with
+ * a strict '=' operator.
+ *
+ * @sa eigen/include/ecl/Eigen3/src/Core/NumTraits.h
+ */
+
 /**
  * @brief Expands the std numeric_limits class for char.
  *

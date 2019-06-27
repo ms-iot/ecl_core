@@ -34,6 +34,8 @@ namespace ecl {
 Serial::Serial()
     : is_open(false), is_run(false), file_descriptor(INVALID_HANDLE_VALUE), error_handler(NoError)
 {
+    m_osRead = new OVERLAPPED();
+    m_osWrite = new OVERLAPPED();
 };
 
 Serial::Serial(
@@ -45,19 +47,25 @@ Serial::Serial(
 ) throw(StandardException)
     : port(port_name), is_run(false), file_descriptor(INVALID_HANDLE_VALUE)
 {
-	try {
+    try {
         m_osRead = new OVERLAPPED();
         m_osWrite = new OVERLAPPED();
-		open(port_name, baud_rate, data_bits, stop_bits, parity);
-	} catch ( StandardException &e ) {
-		throw StandardException(LOC,e);
-	}
+        open(port_name, baud_rate, data_bits, stop_bits, parity);
+    } catch ( StandardException &e ) {
+        throw StandardException(LOC,e);
+    }
 }
 
 Serial::~Serial() {
-	close();
-    delete m_osRead;
-    delete m_osWrite;
+    close();
+    if (m_osRead)
+    {
+        delete m_osRead;
+    }
+    if (m_osWrite)
+    {
+        delete m_osWrite;
+    }
 }
 
 /*****************************************************************************
@@ -284,20 +292,20 @@ long Serial::write(const char *s, unsigned long n) {
 	COMSTAT comstat;
 	int    result;
 
-	result = WriteFile( file_descriptor, s, n, &written, m_osWrite);
+	result = ::WriteFile( file_descriptor, s, n, &written, m_osWrite);
 
 	if (!result) {
-		if (GetLastError() == ERROR_IO_PENDING) {
-			while (!GetOverlappedResult(file_descriptor, m_osWrite, &written, TRUE)) {
-				error = GetLastError();
+		if (::GetLastError() == ERROR_IO_PENDING) {
+			while (!::GetOverlappedResult(file_descriptor, m_osWrite, &written, TRUE)) {
+				error = ::GetLastError();
 				if (error != ERROR_IO_INCOMPLETE) {
-					ClearCommError( file_descriptor, &error_flags, &comstat);
+					::ClearCommError( file_descriptor, &error_flags, &comstat);
 					break;
 				}
 			}
 		} else {
 			written = 0;
-			ClearCommError(file_descriptor, &error_flags, &comstat);
+			::ClearCommError(file_descriptor, &error_flags, &comstat);
 		}
 	}
 	ecl_assert_throw( written != 0, StandardException(LOC,WriteError) );
@@ -368,12 +376,13 @@ long Serial::read(char *s, const unsigned long &n)
     	return 0;
     }
 
-    if (!ReadFile( file_descriptor, s, n, &read, m_osRead) ) {
-        error = GetLastError();
+    if (!::ReadFile( file_descriptor, s, n, &read, m_osRead) ) {
+        error = ::GetLastError();
 
         if( error != ERROR_IO_PENDING ) {
-        	if (error != ERROR_ACCESS_DENIED)
-        		ClearCommError(file_descriptor, &error_flags, &comstat);
+            if (error != ERROR_ACCESS_DENIED) {
+                ::ClearCommError(file_descriptor, &error_flags, &comstat);
+            }
 
             return 0;
         } else {
@@ -381,17 +390,17 @@ long Serial::read(char *s, const unsigned long &n)
 
             switch( dwRes ) {
             case WAIT_OBJECT_0:
-                if( !GetOverlappedResult( file_descriptor, m_osRead, &read, FALSE) ) {
-                    ClearCommError(file_descriptor, &error_flags, &comstat);
+                if( !::GetOverlappedResult( file_descriptor, m_osRead, &read, FALSE) ) {
+                    ::ClearCommError(file_descriptor, &error_flags, &comstat);
                     return 0;
                 } else {
-                    ClearCommError(file_descriptor, &error_flags, &comstat);
+                    ::ClearCommError(file_descriptor, &error_flags, &comstat);
                     return read;
                 }
                 break;
             default:
                 {
-                    ClearCommError(file_descriptor, &error_flags, &comstat);
+                    ::ClearCommError(file_descriptor, &error_flags, &comstat);
                     return 0;
                 }
                 break;
