@@ -251,7 +251,7 @@ public:
 	 * @param stack_size : no. of bytes to allocate on the stack (default is to use the system value, usually 8k).
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 */
-	Thread(VoidFunction function, const Priority &priority = DefaultPriority, const long &stack_size = -1);
+	Thread(VoidFunction function, const Priority &priority = DefaultPriority, const long &stack_size = -1 );
 	/**
 	 * @brief Starts the thread if not already started.
 	 *
@@ -261,7 +261,7 @@ public:
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 * @return Error : error result, fallback for when exceptions aren't available.
 	 */
-	Error start(VoidFunction function, const Priority &priority = DefaultPriority, const long &stack_size = -1);
+	Error start(VoidFunction function, const Priority &priority = DefaultPriority, const long &stack_size = -1 );
 	/**
 	 * @brief Convenience method that starts a new thread utilising a void member function.
 	 *
@@ -286,7 +286,7 @@ public:
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 */
 	template <typename C>
-	Thread(void (C::*function)(), C &c, const Priority &priority = DefaultPriority,  const long &stack_size = -1);
+	Thread(void (C::*function)(), C &c, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
 	/**
 	 * @brief Starts the thread if not already started.
 	 *
@@ -298,7 +298,7 @@ public:
 	 * @return Error : error result, fallback for when exceptions aren't available.
 	 */
 	template <typename C>
-	Error start(void (C::*function)(), C &c, const Priority &priority = DefaultPriority,  const long &stack_size = -1);
+	Error start(void (C::*function)(), C &c, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
 
 	/**
 	 * @brief Starts a new thread utilising a nullary function object.
@@ -339,7 +339,7 @@ public:
 	 * @exception StandardException : throws if thread creation fails [debug mode only].
 	 */
 	template <typename F>
-	Thread(const F &function, const Priority &priority = DefaultPriority,  const long &stack_size = -1);
+	Thread(const F &function, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
 	/**
 	 * @brief Starts a new thread utilising a nullary function object.
 	 *
@@ -350,7 +350,7 @@ public:
 	 * @return Error : error result, fallback for when exceptions aren't available.
 	 */
 	template <typename F>
-	Error start(const F &function, const Priority &priority = DefaultPriority,  const long &stack_size = -1);
+	Error start(const F &function, const Priority &priority = DefaultPriority,  const long &stack_size = -1 );
 
 	/**
 	 * @brief Cleans up the resources allocated to the thread.
