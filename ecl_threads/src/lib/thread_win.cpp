@@ -64,7 +64,7 @@ void Thread::cancel() {
 			}
 		}
 		::CloseHandle(thread_handle);
-		thread_handle = nullptr;
+		thread_handle = NULL;
 	}
 	if (thread_task) {
 		delete thread_task;
@@ -78,7 +78,7 @@ void Thread::join() {
 	join_requested = true;
 
 	if (thread_handle) {
-		::WaitForSingleObject(thread_handle, INFINITE);
+		WaitForSingleObject(thread_handle, INFINITE);
 	}
 }
 

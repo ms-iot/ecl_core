@@ -398,7 +398,6 @@ public:
 	Thread(const Thread&) = delete;
 	Thread& operator=(const Thread&) = delete;
 
-
 private:
     void* thread_handle = nullptr; // use void* for Windows HANDLE type
     threads::ThreadTaskBase *thread_task = nullptr;
