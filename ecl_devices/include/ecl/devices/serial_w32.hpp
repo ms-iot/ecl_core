@@ -190,9 +190,7 @@ public:
 	 *
 	 * True if the serial port is open and connected, false otherwise.
 	 */
-	bool open() const {
-		return is_open;
-	}
+	bool open() const { return is_open; }
 
 	/*********************
 	** Writing

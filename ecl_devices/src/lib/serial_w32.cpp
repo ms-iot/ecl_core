@@ -17,9 +17,10 @@
 ** Includes
 *****************************************************************************/
 
-#include <windows.h>
 #include <ecl/exceptions/standard_exception.hpp>
 #include "../../include/ecl/devices/serial_w32.hpp"
+
+#include <windows.h>
 
 /*****************************************************************************
 ** Namespaces
@@ -47,9 +48,10 @@ Serial::Serial(
 ) throw(StandardException)
     : port(port_name), is_run(false), file_descriptor(INVALID_HANDLE_VALUE)
 {
+    m_osRead = new OVERLAPPED();
+    m_osWrite = new OVERLAPPED();
+
     try {
-        m_osRead = new OVERLAPPED();
-        m_osWrite = new OVERLAPPED();
         open(port_name, baud_rate, data_bits, stop_bits, parity);
     } catch ( StandardException &e ) {
         throw StandardException(LOC,e);
@@ -61,10 +63,12 @@ Serial::~Serial() {
     if (m_osRead)
     {
         delete m_osRead;
+        m_osRead = nullptr;
     }
     if (m_osWrite)
     {
         delete m_osWrite;
+        m_osWrite = nullptr;
     }
 }
 
@@ -89,12 +93,12 @@ void Serial::open(const std::string& port_name, const BaudRate &baud_rate, const
      ******************************************/
     m_osRead->Offset = 0;
     m_osRead->OffsetHigh = 0;
-    if (! (m_osRead->hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr))) {
+    if (! (m_osRead->hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr))) {
     	throw StandardException(LOC, OpenError, "Serial port failed to open - could not configure offsets.");
     }
     m_osWrite->Offset = 0;
     m_osWrite->OffsetHigh = 0;
-    if (! (m_osWrite->hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr))) {
+    if (! (m_osWrite->hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr))) {
     	throw StandardException(LOC, OpenError, "Serial port failed to open - could not configure offsets.");
     }
 
@@ -108,15 +112,14 @@ void Serial::open(const std::string& port_name, const BaudRate &baud_rate, const
      * When in non-overlapped mode you can't sit in a thread trying to read the
      * port and simultaneously try to write from another.
      */
-    file_descriptor = ::CreateFileA(
-        port.c_str(),
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        nullptr,
-        OPEN_EXISTING, // Serial ports already exist
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-        nullptr
-    );
+
+    file_descriptor = CreateFileA( port.c_str(),
+                            GENERIC_READ | GENERIC_WRITE,
+                            0,
+                            NULL,
+                            OPEN_EXISTING, // Serial ports already exist
+                            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+                            NULL);
 
     /******************************************
      * Open - error handling
@@ -250,9 +253,9 @@ void Serial::close() {
 
 		if (file_descriptor != INVALID_HANDLE_VALUE) {
 			// These return values, but assume it works ok, not really critical.
-			::SetCommMask(file_descriptor, 0);
-			::PurgeComm(file_descriptor, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR );
-			::CloseHandle(file_descriptor);
+			SetCommMask(file_descriptor, 0);
+			PurgeComm(file_descriptor, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR );
+			CloseHandle(file_descriptor);
 			file_descriptor = INVALID_HANDLE_VALUE;
 		}
 
@@ -292,20 +295,20 @@ long Serial::write(const char *s, unsigned long n) {
 	COMSTAT comstat;
 	int    result;
 
-	result = ::WriteFile( file_descriptor, s, n, &written, m_osWrite);
+	result = WriteFile( file_descriptor, s, n, &written, m_osWrite);
 
 	if (!result) {
-		if (::GetLastError() == ERROR_IO_PENDING) {
-			while (!::GetOverlappedResult(file_descriptor, m_osWrite, &written, TRUE)) {
-				error = ::GetLastError();
+		if (GetLastError() == ERROR_IO_PENDING) {
+			while (!GetOverlappedResult(file_descriptor, m_osWrite, &written, TRUE)) {
+				error = GetLastError();
 				if (error != ERROR_IO_INCOMPLETE) {
-					::ClearCommError( file_descriptor, &error_flags, &comstat);
+					ClearCommError( file_descriptor, &error_flags, &comstat);
 					break;
 				}
 			}
 		} else {
 			written = 0;
-			::ClearCommError(file_descriptor, &error_flags, &comstat);
+			ClearCommError(file_descriptor, &error_flags, &comstat);
 		}
 	}
 	ecl_assert_throw( written != 0, StandardException(LOC,WriteError) );
@@ -362,7 +365,7 @@ long Serial::read(char &c) {
 long Serial::read(char *s, const unsigned long &n)
 {
     COMSTAT comstat;
-    DWORD read=0, error, error_flags;
+    DWORD   read=0, error, error_flags;
     DWORD dwRes;
 
     /*********************
@@ -376,13 +379,12 @@ long Serial::read(char *s, const unsigned long &n)
     	return 0;
     }
 
-    if (!::ReadFile( file_descriptor, s, n, &read, m_osRead) ) {
-        error = ::GetLastError();
+    if (!ReadFile( file_descriptor, s, n, &read, m_osRead) ) {
+        error = GetLastError();
 
         if( error != ERROR_IO_PENDING ) {
-            if (error != ERROR_ACCESS_DENIED) {
-                ::ClearCommError(file_descriptor, &error_flags, &comstat);
-            }
+            if (error != ERROR_ACCESS_DENIED)
+                ClearCommError(file_descriptor, &error_flags, &comstat);
 
             return 0;
         } else {
@@ -390,17 +392,17 @@ long Serial::read(char *s, const unsigned long &n)
 
             switch( dwRes ) {
             case WAIT_OBJECT_0:
-                if( !::GetOverlappedResult( file_descriptor, m_osRead, &read, FALSE) ) {
-                    ::ClearCommError(file_descriptor, &error_flags, &comstat);
+                if( !GetOverlappedResult( file_descriptor, m_osRead, &read, FALSE) ) {
+                    ClearCommError(file_descriptor, &error_flags, &comstat);
                     return 0;
                 } else {
-                    ::ClearCommError(file_descriptor, &error_flags, &comstat);
+                    ClearCommError(file_descriptor, &error_flags, &comstat);
                     return read;
                 }
                 break;
             default:
                 {
-                    ::ClearCommError(file_descriptor, &error_flags, &comstat);
+                    ClearCommError(file_descriptor, &error_flags, &comstat);
                     return 0;
                 }
                 break;

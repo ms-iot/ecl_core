@@ -405,7 +405,7 @@ private:
     bool has_started = false;
     bool join_requested = false;
 
-    typedef unsigned int(*entryPointFunc) (void*);
+    typedef unsigned int (*entryPointFunc)(void*);
     Error initialise(const entryPointFunc& entryPoint, const Priority& priority, const long& stack_size);
 
 	enum ThreadProperties {
