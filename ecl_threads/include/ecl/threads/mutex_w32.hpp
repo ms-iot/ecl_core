@@ -40,7 +40,7 @@ namespace ecl {
 *****************************************************************************/
 
 /**< @brief Abstraction representing the fundamental mutex type. **/
-typedef std::mutex MutexImpl;
+typedef std::mutex RawMutex;
 
 /*****************************************************************************
 ** Class Mutex
@@ -65,7 +65,6 @@ public:
 	 * @param locked : optionally lock the mutex upon creation (default is unlocked).
 	 */
 	Mutex(const bool locked = false);
-
 	/**
 	 * @brief Destroys the mutex.
 	 *
@@ -123,13 +122,13 @@ public:
 	 * Returns a reference to the underlying mutex type.
 	 * @return RawMutex& : a reference to the underlying mutex type.
 	 */
-	MutexImpl& rawType() { return mutex; }
+	RawMutex& rawType() { return mutex; }
 
 	Mutex(const Mutex&) = delete;
 	Mutex& operator=(const Mutex&) = delete;
 
 private:
-	MutexImpl mutex;
+	RawMutex mutex;
 	unsigned int number_locks;
 
 };

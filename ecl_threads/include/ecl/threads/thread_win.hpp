@@ -442,7 +442,7 @@ Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const
 	}
 
 	thread_task = new threads::ThreadTask< BoundNullaryMemberFunction<C,void> >(generateFunctionObject( function, c ), priority);
-    return initialise(&threads::ThreadTask< BoundNullaryMemberFunction<C,void> >::EntryPoint, priority, stack_size);
+    return initialise(threads::ThreadTask< BoundNullaryMemberFunction<C,void> >::EntryPoint, priority, stack_size);
 }
 
 template <typename F>
@@ -456,7 +456,7 @@ Error Thread::start(const F &function, const Priority &priority, const long &sta
 	}
 
 	thread_task = new threads::ThreadTask<F, is_reference_wrapper<F>::value >(function, priority);
-    return initialise(&threads::ThreadTask<F, is_reference_wrapper<F>::value >::EntryPoint, priority, stack_size);
+    return initialise(threads::ThreadTask<F, is_reference_wrapper<F>::value >::EntryPoint, priority, stack_size);
 }
 
 }; // namespace ecl

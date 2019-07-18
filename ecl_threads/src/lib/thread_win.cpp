@@ -31,12 +31,12 @@ namespace ecl {
 * Thread Class Methods
 *****************************************************************************/
 
-Thread::Thread(VoidFunction function, const Priority& priority, const long& stack_size)
+Thread::Thread(VoidFunction function, const Priority &priority, const long &stack_size)
 {
 	start(function, priority, stack_size);
 }
 
-Error Thread::start(VoidFunction function, const Priority& priority, const long& stack_size)
+Error Thread::start(VoidFunction function, const Priority &priority, const long &stack_size)
 {
 	if ( has_started ) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));
@@ -57,13 +57,13 @@ Thread::~Thread() {
 void Thread::cancel() {
 	if (thread_handle) {
 		unsigned long exitcode;
-		if (::GetExitCodeThread(reinterpret_cast<::HANDLE>(thread_handle), &exitcode)) {
+		if (::GetExitCodeThread(thread_handle, &exitcode)) {
 			if (exitcode == 0x0103) {
 				// unsafe termination.
-				::TerminateThread(reinterpret_cast<::HANDLE>(thread_handle), exitcode);
+				::TerminateThread(thread_handle, exitcode);
 			}
 		}
-		::CloseHandle(reinterpret_cast<::HANDLE>(thread_handle));
+		::CloseHandle(thread_handle);
 		thread_handle = nullptr;
 	}
 	if (thread_task) {
@@ -78,7 +78,7 @@ void Thread::join() {
 	join_requested = true;
 
 	if (thread_handle) {
-		::WaitForSingleObject(reinterpret_cast<::HANDLE>(thread_handle), INFINITE);
+		::WaitForSingleObject(thread_handle, INFINITE);
 	}
 }
 
@@ -88,7 +88,7 @@ Error Thread::initialise(const entryPointFunc& entryPoint, const Priority& prior
     auto thread = ::CreateThread(
         nullptr,
         0,
-        reinterpret_cast<::LPTHREAD_START_ROUTINE>(entryPoint),
+        reinterpret_cast<LPTHREAD_START_ROUTINE>(entryPoint),
         thread_task,
         0,
         &threadid);

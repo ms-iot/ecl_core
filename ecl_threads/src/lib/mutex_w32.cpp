@@ -17,8 +17,9 @@
 *****************************************************************************/
 
 #include <ecl/exceptions/standard_exception.hpp>
-#include <windows.h>
 #include "../../include/ecl/threads/mutex_w32.hpp"
+
+#include <windows.h>
 
 /*****************************************************************************
 ** Namespaces

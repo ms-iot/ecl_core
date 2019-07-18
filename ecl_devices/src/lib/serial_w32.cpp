@@ -112,7 +112,6 @@ void Serial::open(const std::string& port_name, const BaudRate &baud_rate, const
      * When in non-overlapped mode you can't sit in a thread trying to read the
      * port and simultaneously try to write from another.
      */
-
     file_descriptor = CreateFileA( port.c_str(),
                             GENERIC_READ | GENERIC_WRITE,
                             0,
