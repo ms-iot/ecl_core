@@ -23,6 +23,10 @@
 ** Includes
 *****************************************************************************/
 
+#include <functional>
+#include <memory>
+#include <thread>
+
 #include "thread_exceptions_pos.hpp"
 #include <ecl/config/macros.hpp>
 #include <ecl/concepts/nullary_function.hpp>
@@ -80,21 +84,11 @@ public:
 	};
 	virtual ~ThreadTask() {}; /**< @brief This ensures any children objects are deleted correctly. **/
 
-	/**
-	 * @brief Win32 thread function wrapper.
-	 *
-	 * This static function enables member functions to be run by the CreateThread function.
-	 * It's a simple trick that will automatically get used by the @ref ecl::Thread "Thread"
-	 * class.
-	 *
-	 * @param ptr_this : a pointer to an instance of this class.
-	 * @return unsigned int : a Win32 thread requirement, the return value.
-	 */
-	static unsigned int EntryPoint(void *ptr_this) {
-	    ThreadTask< F, false > *ptr = static_cast< ThreadTask< F, false > * >(ptr_this);
-	    (ptr->function)();
-	    return 0;
-	}
+    void Execute()
+    {
+        // ignore function return value
+        function();
+    }
 
 private:
 	F function;
@@ -125,20 +119,11 @@ public:
 	};
 	virtual ~ThreadTask() {}; /**< @brief This ensures any children objects are deleted correctly. **/
 
-	/**
-	 * @brief Win32 thread function wrapper.
-	 *
-	 * This static function enables member functions to be run by the CreateThread function.
-	 * It's a simple trick that will automatically get used by the @ref ecl::Thread "Thread" class
-	 *
-	 * @param ptr_this : a pointer to an instance of this class.
-	 * @return unsigned int : a Win32 thread requirement. the return value.
-	 */
-	static unsigned int EntryPoint(void *ptr_this) {
-	    ThreadTask< F, true > *ptr = static_cast< ThreadTask< F, true > * >(ptr_this);
-	    (ptr->function)();
-	    return 0;
-	}
+    void Execute()
+    {
+        // ignore function return value
+        function();
+    }
 
 private:
 	typename F::type &function;
@@ -367,9 +352,7 @@ public:
 	 *
 	 * @return bool : true if the thread task is still running, false otherwise.
 	 */
-    bool isRunning() {
-        return (thread_task != nullptr);
-    }
+	bool isRunning();
 
 	/**
 	 * @brief Queue a cancel request for this thread to abort.
@@ -399,13 +382,9 @@ public:
 	Thread& operator=(const Thread&) = delete;
 
 private:
-    void* thread_handle = nullptr; // use void* for Windows HANDLE type
-    threads::ThreadTaskBase *thread_task = nullptr;
-    bool has_started = false;
-    bool join_requested = false;
+	std::unique_ptr<std::thread> worker;
 
-    typedef unsigned int (*entryPointFunc)(void*);
-    Error initialise(const entryPointFunc& entryPoint, const Priority& priority, const long& stack_size);
+	Error setWorkerThreadPriority(const Priority& priority);
 
 	enum ThreadProperties {
 		DefaultStackSize = -1
@@ -431,31 +410,47 @@ Thread::Thread(const F& function, const Priority& priority, const long& stack_si
 template <typename C>
 Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const long &stack_size)
 {
-	// stack_size is ignored
-
-	if ( has_started ) {
+	if (worker) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));
 		return Error(BusyError); // if in release mode, gracefully fall back to return values.
-	} else {
-		has_started = true;
 	}
 
-	thread_task = new threads::ThreadTask< BoundNullaryMemberFunction<C,void> >(generateFunctionObject( function, c ), priority);
-    return initialise(threads::ThreadTask< BoundNullaryMemberFunction<C,void> >::EntryPoint, priority, stack_size);
+	auto thread_task = std::make_shared<threads::ThreadTask<BoundNullaryMemberFunction<C,void> > >(generateFunctionObject(function, c), priority);
+	try
+	{
+		// yield ownership of thread_task to new thread
+		worker = std::make_unique<std::thread>(&threads::ThreadTask<BoundNullaryMemberFunction<C,void> >::Execute, thread_task);
+		thread_task.reset();
+	}
+	catch (...)
+	{
+		ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
+		return Error(UnknownError);
+	}
+	return setWorkerThreadPriority(priority);
 }
 
 template <typename F>
 Error Thread::start(const F &function, const Priority &priority, const long &stack_size)
 {
-	if ( has_started ) {
+	if (worker) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));
 		return Error(BusyError); // if in release mode, gracefully fall back to return values.
-	} else {
-		has_started = true;
 	}
 
-	thread_task = new threads::ThreadTask<F, is_reference_wrapper<F>::value >(function, priority);
-    return initialise(threads::ThreadTask<F, is_reference_wrapper<F>::value >::EntryPoint, priority, stack_size);
+	auto thread_task = std::make_shared<threads::ThreadTask<F, is_reference_wrapper<F>::value> >(function, priority);
+	try
+	{
+		// yield ownership of thread_task to new thread
+		worker = std::make_unique<std::thread>(&threads::ThreadTask<F, is_reference_wrapper<F>::value>::Execute, thread_task);
+		thread_task.reset();
+	}
+	catch (...)
+	{
+		ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
+		return Error(UnknownError);
+	}
+	return setWorkerThreadPriority(priority);
 }
 
 }; // namespace ecl

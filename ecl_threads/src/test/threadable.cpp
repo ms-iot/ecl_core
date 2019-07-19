@@ -11,13 +11,16 @@
 
 #include <iostream>
 #include <ecl/config/ecl.hpp>
-#if defined(ECL_IS_POSIX)
+#if defined(ECL_IS_POSIX) || defined(ECL_IS_WIN32)
 
 /*****************************************************************************
 ** Includes
 *****************************************************************************/
 
+#include <chrono>
 #include <iostream>
+#include <thread>
+
 #include <gtest/gtest.h>
 #include <ecl/config/ecl.hpp>
 #include <ecl/exceptions/standard_exception.hpp>
@@ -50,17 +53,17 @@ namespace tests {
 
 class AThreadable : public Threadable {
 public:
-	AThreadable(const unsigned int countdown_start = 5) : top(countdown_start) {}
+	AThreadable(const unsigned int c) : countdown(c) {}
 
 	void runnable() {
-		for ( unsigned int i = top; i > 0; --i ) {
+		for ( unsigned int i = countdown; i > 0; --i ) {
 //			std::cout << "Counting down...." << i << std::endl;
-			sleep(1);
+			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
 	}
 
 private:
-	unsigned int top;
+	unsigned int countdown = 0;
 };
 
 } // namespace tests
@@ -86,11 +89,11 @@ using ecl::threads::tests::AThreadable;
 *****************************************************************************/
 
 TEST(ThreadableTests,runTest) {
-    AThreadable a;
+    AThreadable a(5);
 
     a.start();
     while ( a.isRunning() ) {
-    	sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     SUCCEED();
 }

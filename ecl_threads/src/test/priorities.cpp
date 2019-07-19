@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <ecl/config/ecl.hpp>
-#if defined(ECL_IS_POSIX)
+#if defined(ECL_IS_POSIX) || defined(ECL_IS_WIN32)
 
 /*****************************************************************************
 ** Includes
@@ -55,9 +55,9 @@ TEST(PriorityTest,setPosixPriorities) {
 		set_priority(CriticalPriority);
 		SUCCEED();
 	} catch ( const StandardException &e ) {
-        // often dont have permission to higher level priorities so just warn
+		// often dont have permission to higher level priorities so just warn
 		// ADD_FAILURE() << "Could not set all the non-real time priorities.";
-        std::cout << "Do not have permission for the higher level priorities." << std::endl;
+		std::cout << "Do not have permission for the higher level priorities." << std::endl;
 	}
 }
 
@@ -70,9 +70,9 @@ TEST(PriorityTest,setPosixRealTimePriorities) {
 		SUCCEED();
 	} catch ( const StandardException &e ) {
 		SUCCEED();
-            // often dont have permission for real time scheduling, so just warn
-            // ADD_FAILURE() << "Could not set all the real time priorities.";
-            std::cout << "Do not have permission for real time scheduling priorities." << std::endl;
+			// often dont have permission for real time scheduling, so just warn
+			// ADD_FAILURE() << "Could not set all the real time priorities.";
+			std::cout << "Do not have permission for real time scheduling priorities." << std::endl;
 	}
 }
 
@@ -82,8 +82,8 @@ TEST(PriorityTest,setPosixRealTimePriorities) {
 
 int main(int argc, char **argv) {
 
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
+	testing::InitGoogleTest(&argc,argv);
+	return RUN_ALL_TESTS();
 }
 
 
