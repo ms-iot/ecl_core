@@ -384,7 +384,7 @@ public:
 private:
 	std::unique_ptr<std::thread> worker;
 
-	Error setWorkerThreadPriority(const Priority& priority);
+	Error setWorkerThreadPriority(const Priority &priority);
 
 	enum ThreadProperties {
 		DefaultStackSize = -1
@@ -396,13 +396,13 @@ private:
 *****************************************************************************/
 
 template <typename C>
-Thread::Thread(void (C::*function)(), C& c, const Priority& priority, const long& stack_size)
+Thread::Thread(void (C::*function)(), C &c, const Priority &priority, const long &stack_size)
 {
 	start<C>(function, c, priority, stack_size);
 }
 
 template <typename F>
-Thread::Thread(const F& function, const Priority& priority, const long& stack_size)
+Thread::Thread(const F &function, const Priority &priority, const long &stack_size)
 {
 	start<F>(function, priority, stack_size);
 }

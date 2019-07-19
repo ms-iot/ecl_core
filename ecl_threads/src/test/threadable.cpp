@@ -53,17 +53,17 @@ namespace tests {
 
 class AThreadable : public Threadable {
 public:
-	AThreadable(const unsigned int c) : countdown(c) {}
+	AThreadable(const unsigned int countdown_start = 5) : top(countdown_start) {}
 
 	void runnable() {
-		for ( unsigned int i = countdown; i > 0; --i ) {
+		for ( unsigned int i = top; i > 0; --i ) {
 //			std::cout << "Counting down...." << i << std::endl;
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
 	}
 
 private:
-	unsigned int countdown = 0;
+	unsigned int top;
 };
 
 } // namespace tests
@@ -89,7 +89,7 @@ using ecl::threads::tests::AThreadable;
 *****************************************************************************/
 
 TEST(ThreadableTests,runTest) {
-    AThreadable a(5);
+    AThreadable a;
 
     a.start();
     while ( a.isRunning() ) {

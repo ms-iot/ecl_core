@@ -101,7 +101,7 @@ void Thread::join() {
 	}
 }
 
-Error Thread::setWorkerThreadPriority(const Priority& priority) {
+Error Thread::setWorkerThreadPriority(const Priority &priority) {
 	if (!worker)
 	{
 		// do nothing if no worker thread has been created
