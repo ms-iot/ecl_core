@@ -408,7 +408,7 @@ Thread::Thread(const F& function, const Priority& priority, const long& stack_si
 }
 
 template <typename C>
-Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const long &stack_size)
+Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const long &)
 {
 	if (worker) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));
@@ -431,7 +431,7 @@ Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const
 }
 
 template <typename F>
-Error Thread::start(const F &function, const Priority &priority, const long &stack_size)
+Error Thread::start(const F &function, const Priority &priority, const long &)
 {
 	if (worker) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));

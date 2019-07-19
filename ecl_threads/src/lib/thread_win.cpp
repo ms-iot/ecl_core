@@ -40,7 +40,7 @@ Thread::Thread(VoidFunction function, const Priority &priority, const long &stac
 	start(function, priority, stack_size);
 }
 
-Error Thread::start(VoidFunction function, const Priority &priority, const long&)
+Error Thread::start(VoidFunction function, const Priority &priority, const long &)
 {
 	if (worker) {
 		ecl_debug_throw(StandardException(LOC,BusyError,"The thread has already been started."));
