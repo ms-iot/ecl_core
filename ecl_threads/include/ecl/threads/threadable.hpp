@@ -80,7 +80,7 @@ public:
 	 */
 	bool start(const Priority &priority = DefaultPriority) {
 		if ( isRunning() ) { return false; }
-		thread = std::make_unique<Thread>(&Threadable::executeThreadFunction, *this, priority);
+		thread.reset(new Thread(&Threadable::executeThreadFunction, *this, priority));
 		return true;
 	}
 	/**
