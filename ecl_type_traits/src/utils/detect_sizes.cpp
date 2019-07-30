@@ -88,6 +88,17 @@ int main() {
     std::cout << "numeric_limits<unsigned long>::max " << numeric_limits<unsigned long>::maximum << std::endl;
     std::cout << std::endl;
 
+    std::cout << "numeric_limits<long long>::bytes " << numeric_limits<long long>::bytes << std::endl;
+    std::cout << "numeric_limits<long long>::bits " << numeric_limits<long long>::bits << std::endl;
+    std::cout << "numeric_limits<long long>::min " << numeric_limits<long long>::minimum << std::endl;
+    std::cout << "numeric_limits<long long>::max " << numeric_limits<long long>::maximum << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "numeric_limits<unsigned long long>::bytes " << numeric_limits<unsigned long long>::bytes << std::endl;
+    std::cout << "numeric_limits<unsigned long long>::bits " << numeric_limits<unsigned long long>::bits << std::endl;
+    std::cout << "numeric_limits<unsigned long long>::min " << numeric_limits<unsigned long long>::minimum << std::endl;
+    std::cout << "numeric_limits<unsigned long long>::max " << numeric_limits<unsigned long long>::maximum << std::endl;
+
 //    std::cout << std::endl;
 //    std::cout << "***********************************************************" << std::endl;
 //    std::cout << "                       Integer<>" << std::endl;

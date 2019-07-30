@@ -12,4 +12,4 @@
 #include <limits>
 #include "../../include/ecl/type_traits/numeric_limits.hpp"
 
-// this file is empty because ecl_type_traits is header-only
+// this file is empty since ecl_type_traits is header-only
