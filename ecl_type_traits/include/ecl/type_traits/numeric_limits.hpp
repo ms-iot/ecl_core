@@ -175,7 +175,7 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<int64> : public std::numeric_limits<long> {
+class ecl_type_traits_PUBLIC numeric_limits<int64> : public std::numeric_limits<int64> {
 public:
 	static const int64 one = 1L;
 	static const uint16 bits = ECL_SIZE_OF_LONG*8;
@@ -193,7 +193,7 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<uint64> : public std::numeric_limits<unsigned long> {
+class ecl_type_traits_PUBLIC numeric_limits<uint64> : public std::numeric_limits<uint64> {
 public:
 	static const uint64 one = 1UL;
 	static const uint16 bits = ECL_SIZE_OF_LONG*8;
