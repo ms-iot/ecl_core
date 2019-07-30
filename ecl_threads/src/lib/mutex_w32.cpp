@@ -32,8 +32,7 @@ namespace ecl {
 *****************************************************************************/
 
 Mutex::Mutex(const bool locked) : number_locks(0)  {
-    if (locked)
-    {
+    if (locked) {
         this->mutex.lock();
     }
 }
@@ -47,12 +46,11 @@ void Mutex::lock() {
 }
 
 bool Mutex::trylock(Duration&) {
-	return trylock();
+    return trylock();
 }
 
 bool Mutex::trylock() {
-    if (number_locks)
-    {
+    if (number_locks) {
         return false;
     }
     lock();

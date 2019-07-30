@@ -53,8 +53,7 @@ TimeStamp::TimeStamp(const TimeStampBase& base) : TimeStampBase(base) {}
 *****************************************************************************/
 
 const TimeStamp& TimeStamp::stamp() {
-    if (epoch_time(time).flag() != NoError)
-    {
+    if (epoch_time(time).flag() != NoError) {
         ecl_debug_throw(time::throwTimeStampException(LOC));
     }
     return (*this);

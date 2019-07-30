@@ -49,14 +49,12 @@ Error Thread::start(VoidFunction function, const Priority &priority, const long 
 
 	NullaryFreeFunction<void> nullary_function_object = generateFunctionObject(function);
 	auto thread_task = std::make_shared<threads::ThreadTask<NullaryFreeFunction<void> > >(nullary_function_object, priority);
-	try
-	{
+	try {
 		// yield ownership of thread_task to new thread
 		worker = std::make_unique<std::thread>(&threads::ThreadTask<NullaryFreeFunction<void> >::Execute, thread_task);
 		thread_task.reset();
 	}
-	catch (...)
-	{
+	catch (...) {
 		ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
 		return Error(UnknownError);
 	}
@@ -77,8 +75,7 @@ bool Thread::isRunning()
 }
 
 void Thread::cancel() {
-	if (!worker)
-	{
+	if (!worker) {
 		return;
 	}
 
@@ -102,8 +99,7 @@ void Thread::join() {
 }
 
 Error Thread::setWorkerThreadPriority(const Priority &priority) {
-	if (!worker)
-	{
+	if (!worker) {
 		// do nothing if no worker thread has been created
 		return Error(NoError);
 	}

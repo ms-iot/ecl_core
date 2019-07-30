@@ -60,13 +60,11 @@ Serial::Serial(
 
 Serial::~Serial() {
     close();
-    if (m_osRead)
-    {
+    if (m_osRead) {
         delete m_osRead;
         m_osRead = nullptr;
     }
-    if (m_osWrite)
-    {
+    if (m_osWrite) {
         delete m_osWrite;
         m_osWrite = nullptr;
     }

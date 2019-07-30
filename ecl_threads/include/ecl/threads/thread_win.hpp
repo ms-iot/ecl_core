@@ -84,11 +84,10 @@ public:
 	};
 	virtual ~ThreadTask() {}; /**< @brief This ensures any children objects are deleted correctly. **/
 
-    void Execute()
-    {
-        // ignore function return value
-        function();
-    }
+	void Execute() {
+		// ignore function return value
+		function();
+	}
 
 private:
 	F function;
@@ -416,14 +415,12 @@ Error Thread::start(void (C::*function)(), C &c, const Priority &priority, const
 	}
 
 	auto thread_task = std::make_shared<threads::ThreadTask<BoundNullaryMemberFunction<C,void> > >(generateFunctionObject(function, c), priority);
-	try
-	{
+	try {
 		// yield ownership of thread_task to new thread
 		worker = std::make_unique<std::thread>(&threads::ThreadTask<BoundNullaryMemberFunction<C,void> >::Execute, thread_task);
 		thread_task.reset();
 	}
-	catch (...)
-	{
+	catch (...) {
 		ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
 		return Error(UnknownError);
 	}
@@ -439,14 +436,12 @@ Error Thread::start(const F &function, const Priority &priority, const long &)
 	}
 
 	auto thread_task = std::make_shared<threads::ThreadTask<F, is_reference_wrapper<F>::value> >(function, priority);
-	try
-	{
+	try {
 		// yield ownership of thread_task to new thread
 		worker = std::make_unique<std::thread>(&threads::ThreadTask<F, is_reference_wrapper<F>::value>::Execute, thread_task);
 		thread_task.reset();
 	}
-	catch (...)
-	{
+	catch (...) {
 		ecl_debug_throw(StandardException(LOC, UnknownError, "Failed to create thread."));
 		return Error(UnknownError);
 	}
