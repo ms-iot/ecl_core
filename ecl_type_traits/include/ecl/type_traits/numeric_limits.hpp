@@ -206,42 +206,6 @@ public:
 };
 
 /**
- * @brief Expands the std numeric_limits class for long long.
- *
- * @sa ecl::numeric_limits
- */
-// template <>
-// class ecl_type_traits_PUBLIC numeric_limits<long long> : public std::numeric_limits<long long> {
-// public:
-// 	static const long long one = 1LL;
-// 	static const uint16 bits = ECL_SIZE_OF_LONG_LONG*8;
-// 	static const uint16 bytes = ECL_SIZE_OF_LONG_LONG;
-// 	static const long long minimum = LLONG_MIN;
-// 	static const long long maximum = LLONG_MAX;
-
-// 	typedef float Precision;
-// 	static const Precision dummy_precision;
-// };
-
-/**
- * @brief Expands the std numeric_limits class for unsigned long long.
- *
- * @sa ecl::numeric_limits
- */
-// template <>
-// class ecl_type_traits_PUBLIC numeric_limits<unsigned long long> : public std::numeric_limits<unsigned long long> {
-// public:
-// 	static const unsigned long long one = 1ULL;
-// 	static const uint16 bits = ECL_SIZE_OF_LONG_LONG*8;
-// 	static const uint16 bytes = ECL_SIZE_OF_LONG_LONG;
-// 	static const unsigned long long minimum = 0ULL;
-// 	static const unsigned long long maximum = ULLONG_MAX;
-
-// 	typedef float Precision;
-// 	static const Precision dummy_precision;
-// };
-
-/**
  * @brief Expands the std numeric_limits class for float.
  *
  * @sa ecl::numeric_limits
