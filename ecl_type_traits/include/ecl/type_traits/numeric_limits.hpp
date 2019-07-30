@@ -51,6 +51,12 @@ namespace ecl {
  * of the implementation in the derived classes here.
  *
  * @tparam T : the type to check (currently must be a fundamental type).
+ * 
+ * Dummy precision is a useful concept borrowed from eigen. It is used to help define
+ * fuzzy operators which is especially handy for comparing floats which are notorious with
+ * a strict '=' operator.
+ *
+ * @sa eigen/include/ecl/Eigen3/src/Core/NumTraits.h
  */
 template <typename T>
 class numeric_limits : public std::numeric_limits<T>
@@ -66,16 +72,17 @@ class numeric_limits : public std::numeric_limits<T>
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<char> : public std::numeric_limits<char> {
+class numeric_limits<char> : public std::numeric_limits<char> {
 public:
 	static const char one = 1;
 	static const uint16 bits = ECL_SIZE_OF_CHAR*8;
 	static const uint16 bytes = ECL_SIZE_OF_CHAR;
-	static const char minimum = CHAR_MIN;
-	static const char maximum = CHAR_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-5f;
+
+	static const char minimum = lowest();
+	static const char maximum = max();
 };
 
 /**
@@ -84,16 +91,17 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<unsigned char> : public std::numeric_limits<unsigned char> {
+class numeric_limits<unsigned char> : public std::numeric_limits<unsigned char> {
 public:
 	static const unsigned char one = 1U;
 	static const uint16 bits = ECL_SIZE_OF_CHAR*8;
 	static const uint16 bytes = ECL_SIZE_OF_CHAR;
-	static const unsigned char minimum = 0U;
-	static const unsigned char maximum = UCHAR_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-5f;
+
+	static const unsigned char minimum = lowest();
+	static const unsigned char maximum = max();
 };
 
 /**
@@ -102,16 +110,17 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<short> : public std::numeric_limits<short> {
+class numeric_limits<short> : public std::numeric_limits<short> {
 public:
 	static const short one = 1;
 	static const uint16 bits = ECL_SIZE_OF_SHORT*8;
 	static const uint16 bytes = ECL_SIZE_OF_SHORT;
-	static const short minimum = SHRT_MIN;
-	static const short maximum = SHRT_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-5f;
+
+	static const short minimum = lowest();
+	static const short maximum = max();
 };
 
 /**
@@ -120,16 +129,17 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<unsigned short> : public std::numeric_limits<unsigned short> {
+class numeric_limits<unsigned short> : public std::numeric_limits<unsigned short> {
 public:
 	static const unsigned short one = 1U;
 	static const uint16 bits = ECL_SIZE_OF_SHORT*8;
 	static const uint16 bytes = ECL_SIZE_OF_SHORT;
-	static const unsigned short minimum = 0U;
-	static const unsigned short maximum = USHRT_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-5f;
+
+	static const unsigned short minimum = lowest();
+	static const unsigned short maximum = max();
 };
 
 /**
@@ -138,16 +148,17 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<int> : public std::numeric_limits<int> {
+class numeric_limits<int> : public std::numeric_limits<int> {
 public:
 	static const int one = 1;
 	static const uint16 bits = ECL_SIZE_OF_INT*8;
 	static const uint16 bytes = ECL_SIZE_OF_INT;
-	static const int minimum = INT_MIN;
-	static const int maximum = INT_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 0;
+
+	static const int minimum = lowest();
+	static const int maximum = max();
 };
 
 /**
@@ -156,53 +167,94 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<unsigned int> : public std::numeric_limits<unsigned int> {
+class numeric_limits<unsigned int> : public std::numeric_limits<unsigned int> {
 public:
 	static const unsigned int one = 1U;
 	static const uint16 bits = ECL_SIZE_OF_INT*8;
 	static const uint16 bytes = ECL_SIZE_OF_INT;
-	static const unsigned int minimum = 0U;
-	static const unsigned int maximum = UINT_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 0;
+
+	static const unsigned int minimum = lowest();
+	static const unsigned int maximum = max();
 };
 
 
 /**
- * @brief Expands the std numeric_limits class for ecl:int64.
+ * @brief Expands the std numeric_limits class for long.
  *
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<int64> : public std::numeric_limits<int64> {
+class numeric_limits<long> : public std::numeric_limits<long> {
 public:
-	static const int64 one = 1L;
+	static const long one = 1L;
 	static const uint16 bits = ECL_SIZE_OF_LONG*8;
 	static const uint16 bytes = ECL_SIZE_OF_LONG;
-	static const int64 minimum = LONG_MIN;
-	static const int64 maximum = LONG_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 0;
+
+	static const long minimum = lowest();
+	static const long maximum = max();
 };
 
 /**
- * @brief Expands the std numeric_limits class for ecl::uint64.
+ * @brief Expands the std numeric_limits class for unsigned long.
  *
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<uint64> : public std::numeric_limits<uint64> {
+class numeric_limits<unsigned long> : public std::numeric_limits<unsigned long> {
 public:
-	static const uint64 one = 1UL;
+	static const unsigned long one = 1UL;
 	static const uint16 bits = ECL_SIZE_OF_LONG*8;
 	static const uint16 bytes = ECL_SIZE_OF_LONG;
-	static const uint64 minimum = 0UL;
-	static const uint64 maximum = ULONG_MAX;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 0;
+
+	static const unsigned long minimum = lowest();
+	static const unsigned long maximum = max();
+};
+
+/**
+ * @brief Expands the std numeric_limits class for long long.
+ *
+ * @sa ecl::numeric_limits
+ */
+template <>
+class numeric_limits<long long> : public std::numeric_limits<long long> {
+public:
+	static const long long one = 1LL;
+	static const uint16 bits = ECL_SIZE_OF_LONG_LONG*8;
+	static const uint16 bytes = ECL_SIZE_OF_LONG_LONG;
+
+	typedef float Precision;
+	static constexpr Precision dummy_precision = 0;
+
+	static const long long minimum = lowest();
+	static const long long maximum = max();
+};
+
+/**
+ * @brief Expands the std numeric_limits class for unsigned long long.
+ *
+ * @sa ecl::numeric_limits
+ */
+template <>
+class numeric_limits<unsigned long long> : public std::numeric_limits<unsigned long long> {
+public:
+	static const unsigned long long one = 1ULL;
+	static const uint16 bits = ECL_SIZE_OF_LONG_LONG*8;
+	static const uint16 bytes = ECL_SIZE_OF_LONG_LONG;
+
+	typedef float Precision;
+	static constexpr Precision dummy_precision = 0;
+
+	static const unsigned long long minimum = lowest();
+	static const unsigned long long maximum = max();
 };
 
 /**
@@ -211,16 +263,16 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<float> : public std::numeric_limits<float> {
+class numeric_limits<float> : public std::numeric_limits<float> {
 public:
 	static const uint16 bits = ECL_SIZE_OF_FLOAT*8;
 	static const uint16 bytes = ECL_SIZE_OF_FLOAT;
 
 	typedef float Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-5f;
 
-	static const float minimum;
-	static const float maximum;
+	static constexpr float minimum = lowest();
+	static constexpr float maximum = max();
 };
 
 /**
@@ -229,16 +281,16 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<double> : public std::numeric_limits<double> {
+class numeric_limits<double> : public std::numeric_limits<double> {
 public:
 	static const uint16 bits = ECL_SIZE_OF_DOUBLE*8;
 	static const uint16 bytes = ECL_SIZE_OF_DOUBLE;
 
 	typedef double Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-12;
 
-	static const double minimum;
-	static const double maximum;
+	static constexpr double minimum = lowest();
+	static constexpr double maximum = max();
 };
 
 /**
@@ -247,16 +299,16 @@ public:
  * @sa ecl::numeric_limits
  */
 template <>
-class ecl_type_traits_PUBLIC numeric_limits<long double> : public std::numeric_limits<long double> {
+class numeric_limits<long double> : public std::numeric_limits<long double> {
 public:
 	static const uint16 bits = ECL_SIZE_OF_LONG_DOUBLE*8;
 	static const uint16 bytes = ECL_SIZE_OF_LONG_DOUBLE;
 
 	typedef long double Precision;
-	static const Precision dummy_precision;
+	static constexpr Precision dummy_precision = 1e-15;
 
-	static const long double minimum;
-	static const long double maximum;
+	static constexpr long double minimum = lowest();
+	static constexpr long double maximum = max();
 };
 
 
